@@ -1,17 +1,10 @@
 '''
-1. reg_time----函数是将一句话中的时间量正则表示出来。
-2. str2_time----将一个表示时间量的字符串变为以天为单位的数字量，如: 半天--> 0.5 day, 一周 --> 7 days
+将一个表示时间量的字符串变为以天为单位的数字量，如: 半天--> 0.5 day, 一周 --> 7 days
 by xlc time:2017-09-07 08:01:55
 '''
+import sys
+sys.path.append('D:/mypyfunc')
 import re
-
-def reg_time(string):
-    import re
-    reg_str = r'([0-9]{1,3}|[一二三四五六七八九十半两])([+]?[ ]?[多]?[余]?[个]?[小]?)([周年月天时日]|分钟|分|星期)([余]?[左右]{0,2})'
-    reg = re.compile(reg_str)
-    time_str = re.findall(reg,string)
-    return time_str
-
 def str2time(string): #时间字符转化为时间量，单位统一为天
     time_str ={'年':365,'月':30,'周':7,'天':1,'小时':0.0416667,\
                 '分钟':0.0006944}
