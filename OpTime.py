@@ -15,22 +15,31 @@ def reg_time(string):
 
 def reg_date(string): #正则日期
     reg_ymd = r'\d{2,4}[年/.-](\d{1,2}[月/.-])?(\d{1,2}[日号]?)?'
-    reg_ymd_time = r'\d{2,4}[年/.- ]\d{1,2}[月/.- ]\d{1,2}[日号 ]?[，,]?[ ]*\d{1,2}[点时：:]\d{1,2}[分]?'
-    ymd_0 = re.match(reg_ymd, string)
-    if ymd_0:
-        return ymd_0.group()
+    reg_ymd_time = r'\d{2,4}[年/. -]\d{1,2}[月/. -]\d{1,2}[日号 ]?[，,]?[ ]*\d{1,2}[点时：:]\d{1,2}[分]?'
+    reg_md_time = r'\d{1,2}[月/. -]\d{1,2}[日号 ]?'
+    reg_other = r'近?([0-9]{1,3}|[一二三四五六七八九十半两])个?半?余?([周年月天日]|小时|星期|分钟)[余半多]?[以之前后来底初]{1,2}来?'
+    reg_other_plus = r'近([0-9]{1,3}|[一二三四五六七八九十半两])个?半?余?([周年月天日]|小时|星期|分钟)[余半多]?[以之前后来底初]{0,2}来?'
+    ymd_0 = re.search(reg_ymd, string)
+    ymd_1 = re.search(reg_other + '|' + reg_other_plus, string)
+    md = re.search(reg_md_time, string) #月，日
+    if ymd_1:
+        return {'T':ymd_1.group()}
+    elif ymd_0:
+        return {'Y':ymd_0.group()}
+    elif md:
+        return {'M':md.group()}
     else:
-        return ''
+        return {'N':''}
     
-def str2time(string): #时间字符转化为时间量，单位统一为天
+def str2time(string, with_rdm=True): #时间字符转化为时间量，单位统一为天
     time_str ={'年':365,'月':30,'周':7,'天':1,'小时':0.0416667,\
                 '分钟':0.0006944}
     chi = ['半', '一', '二', '两', '三', '四', '五', '六', '七', '八', '九', '十']
     num = [0.5,1,2,2,3,4,5,6,7,8,9,10]
     chi2num = dict(zip(chi,num))
     unite = get_unite(string)
-    if '余' in string or '多' in string or '来' in string or \
-       '约' in string or '+' in string: # 用随机数的方法代替不确定时间的表示
+    if ('余' in string or '多' in string or '来' in string or \
+       '约' in string or '+' in string) and with_rdm == True: # 用随机数的方法代替不确定时间的表示
         
         rdmtime = rdm_unite(unite)
         for i in chi:
@@ -44,7 +53,11 @@ def str2time(string): #时间字符转化为时间量，单位统一为天
     else:
         for i in chi:
             if i in string:
-                time_num = chi2num[i]
+                try:
+                    main_time = reg_get_num(string) #2年半的bug
+                except:
+                    main_time = 0
+                time_num = main_time + chi2num[i]
                 unite = get_unite(string)
                 days = time_num * unite
                 break
@@ -88,7 +101,7 @@ def get_unite(string): #得到字符串的单位
         unite = time_str['年']
     elif '月' in string:
         unite = time_str['月']
-    elif '周' in string or '礼拜' in string:
+    elif '周' in string or '礼拜' in string or '星期' in string:
         unite = time_str['周']
     elif '天' in string or '日' in string:
         unite = time_str['天']
