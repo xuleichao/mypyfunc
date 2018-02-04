@@ -17,7 +17,7 @@ from matplotlib import pyplot as plt
 #study_rate: 学习率
 def NNtrain(X, y, nnHid_scale, num_passes=2000, study_rate=0.01): #神经网络模型训练
     X_num = X.shape[1] #特征的个数
-    y_num = y.shape[0] #标记集的个数
+    y_num = 1 #标记集的个数
     '''
     1. 先算隐层输入，2. 然后算隐层输出，
     3. 然后算输出层输入，4. 然后算输出层输出，
@@ -35,7 +35,7 @@ def NNtrain(X, y, nnHid_scale, num_passes=2000, study_rate=0.01): #神经网络�
         G = Out_out * (1 - Out_out) * (np.array(y) - Out_out) #
         delta_W_hid = study_rate * G.dot(Hid_out) # 隐层权重的增量
         delta_yuzhi_out = -study_rate * G#输入端阈值更新增量
-        print(W_hid.shape, G.shape)
+        print(W_hid.shape, G.shape, Hid_out.shape)
         E = Hid_out * (1 - Hid_out) * np.dot(W_hid, G)#
         delta_W_input = study_rate * E * np.array(X) #输入端权重更新增量
         delta_yuzhi_hid = -study_rate * E#隐层阈值更新增量
