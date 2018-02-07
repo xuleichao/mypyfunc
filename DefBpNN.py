@@ -21,9 +21,9 @@ def sigmoid(lst):
 
 def predict(x, model):
     W_input, W_hid, yuzhi_hid, yuzhi_out = model[0], model[1], model[2], model[3]
-    Hid_out = sigmoid(x.dot(W_input) - yuzhi_hid)#隐层输出
-    Out_out = sigmoid(Hid_out.dot(W_hid) - yuzhi_out)#输出层输出
-    return Out_out
+    Hid_out = sigmoid(np.dot(W_input, x.reshape(-1, 1)) - yuzhi_hid)#隐层输出
+    Out_out = sigmoid(np.dot(W_hid, Hid_out) - yuzhi_out)#输出层输出
+    return np.argmax(Out_out, axis=0)
 
 def NNtrain(X, y, nnHid_scale, num_passes=2000, study_rate=0.01): #神经网络模型训练
     X_num = X.shape[1] #特征的个数
@@ -33,30 +33,32 @@ def NNtrain(X, y, nnHid_scale, num_passes=2000, study_rate=0.01): #神经网络�
     3. 然后算输出层输入，4. 然后算输出层输出，
     5. 获得损失，然后更新各个参数
     '''
-    W_input = np.random.randn(X_num, nnHid_scale) #输入端的权重
-    W_hid = np.random.randn(nnHid_scale, y_num) #隐层的权重
-    yuzhi_hid = np.zeros(nnHid_scale) #隐层的阈值
-    yuzhi_out = np.zeros(y_num) #输出的阈值
+    W_input = np.random.randn(nnHid_scale, X_num) #输入端的权重
+    W_hid = np.random.randn(y_num, nnHid_scale) #隐层的权重
+    yuzhi_hid = np.zeros((nnHid_scale, 1)) #隐层的阈值
+    yuzhi_out = np.zeros((y_num, 1)) #输出的阈值
 
     for i in range(num_passes): #迭代更新
         all_loss = []
         for x in range(X.shape[0]):
-            Hid_out = sigmoid(X[x].dot(W_input) - yuzhi_hid)#隐层输出
-            Out_out = sigmoid(Hid_out.dot(W_hid) - yuzhi_out)#输出层输出
+            x_input = X[x].reshape(-1, 1) #x input
+            y_out = y[x].reshape(-1, 1) #y out
+            Hid_out = sigmoid(W_input.dot(x_input) - yuzhi_hid)#隐层输出
+            Out_out = sigmoid(W_hid.dot(Hid_out) - yuzhi_out)#输出层输出
             #开始更新
-            G = Out_out * (1 - Out_out) * (np.array(y[x]) - Out_out) #
-            delta_W_hid = study_rate * Hid_out.reshape(nnHid_scale, -1).dot(G.reshape(-1, y_num)) # 隐层权重的增量
+            G = Out_out * (1 - Out_out) * (y_out - Out_out) #
+            delta_W_hid = 0.01 * study_rate * G.dot(Hid_out.reshape(1, -1))# 隐层权重的增量
             delta_yuzhi_out = -study_rate * G#输入端阈值更新增量
-            E = Hid_out * (1 - Hid_out) * np.dot(W_hid, G)#
-            delta_W_input = study_rate * (E.reshape(nnHid_scale, -1)\
-                            * np.array(X[x]).reshape(-1, X_num)).T #输入端权重更新增量
+            E = Hid_out * (1 - Hid_out) * np.dot(W_hid.T, G)#
+            delta_W_input = 0.01 * study_rate * (E\
+                            * np.array(x_input).reshape(1, -1)) #输入端权重更新增量
             delta_yuzhi_hid = -study_rate * E#隐层阈值更新增量
             #权重阈值更新
-            W_hid = W_hid + delta_W_hid.reshape(nnHid_scale, -1)
+            W_hid = W_hid + delta_W_hid
             yuzhi_out = yuzhi_out + delta_yuzhi_out
             W_input = W_input + delta_W_input
             yuzhi_hid = yuzhi_hid + delta_yuzhi_hid
-            loss = 0.5 * sum(np.power((Out_out - y[x]), 2))
+            loss = 0.5 * sum(np.power((Out_out - y_out), 2))
             all_loss.append(loss)
         #loss
         min_loss = sum(all_loss)/(X.shape[0])
