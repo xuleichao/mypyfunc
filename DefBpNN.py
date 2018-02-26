@@ -54,7 +54,7 @@ def plot_decision_boundary(pred_func, X, y):
     plt.show()
 
 def sigmoid(lst):
-    y = 1/(1 + np.exp(lst))
+    y = 1/(1 + np.exp(-lst))
     return y
 
 def predict(x, model):
@@ -92,10 +92,10 @@ def NNtrain(X, y, nnHid_scale, num_passes=2000, study_rate=0.01): #神经网络�
                             np.array(x_input).reshape(1, -1))) #输入端权重更新增量
             delta_yuzhi_hid = -study_rate * E#隐层阈值更新增量
             #权重阈值更新
-            W_hid = W_hid - delta_W_hid
-            yuzhi_out = yuzhi_out - delta_yuzhi_out
-            W_input = W_input - delta_W_input
-            yuzhi_hid = yuzhi_hid - delta_yuzhi_hid
+            W_hid = W_hid + delta_W_hid
+            yuzhi_out = yuzhi_out + delta_yuzhi_out
+            W_input = W_input + delta_W_input
+            yuzhi_hid = yuzhi_hid + delta_yuzhi_hid
             loss = 0.5 * sum(np.power((Out_out - y_out), 2))
             all_loss.append(loss)
         #loss
@@ -107,7 +107,7 @@ def NNtrain(X, y, nnHid_scale, num_passes=2000, study_rate=0.01): #神经网络�
     
 if __name__ == '__main__':
     # 制作散点图，数据集
-    np.random.seed(2)
+    np.random.seed(0)
     X, y = sklearn.datasets.make_moons(200, noise=0.20)
     r = []
     for i in y:
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         else:
             r.append([1, 0])
     r = np.array(r)
-    model = NNtrain(X, r, nnHid_scale=5, num_passes=2000, study_rate=0.01)
+    model = NNtrain(X, r, nnHid_scale=5, num_passes=1000, study_rate=0.1)
     result = []
     for i in X:
         result.append(predict(i.reshape(-1, 1), model)[0])
