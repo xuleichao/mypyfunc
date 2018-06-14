@@ -31,6 +31,7 @@ class BayesNet:
         self.default_F = default_F # 初始默认概率
         self.default_T = 1 - default_F # 初始默认概率
         self.net_init('')
+        self.self_detect()
         
 
     def net_init(self, block_name): # 子网络初始化
@@ -88,6 +89,19 @@ class BayesNet:
             new_result.append(tiny)
         result = DataFrame(new_result, columns=df.columns)
         self.block_matrix_tf = result
+
+    def self_detect(self): # 自检函数
+        '''
+        检测概率是否定义错误，之和超过1（报错）, 或小于1（警告）
+        '''
+        detect_lst = np.array(self.block_matrix_tf).tolist()
+        for i in detect_lst:
+            sum_add = sum(i[-2:])
+            if sum_add > 1:
+                print('Probabilty is more than 1', '->',i[-2:])
+                raise ValueError
+            if sum_add < 1:
+                print('Wanning, 概率之和小于1', '->',i[-2:])
 
 if __name__ == '__main__':
     A0 = BayesNet('', 0, [], '病史', default_F=0.6, root_node=True)
