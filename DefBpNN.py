@@ -116,7 +116,7 @@ if __name__ == '__main__':
         else:
             r.append([1, 0])
     r = np.array(r)
-    model = NNtrain(X, r, nnHid_scale=5, num_passes=1000, study_rate=0.1)
+    model = NNtrain(X, r, nnHid_scale=6, num_passes=2000, study_rate=0.1)
     result = []
     for i in X:
         result.append(predict(i.reshape(-1, 1), model)[0])

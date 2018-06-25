@@ -103,8 +103,24 @@ class BayesNet:
             if sum_add < 1:
                 print('Wanning, 概率之和小于1', '->',i[-2:])
 
+def calculate(sub_nodes_cls_lst):
+    all_nodes = []
+    for i in sub_nodes_cls_lst:
+        cause_nodes = i.cause_nodes_name
+        effect_nodes = i.effect_name
+        all_nodes += cause_nodes
+        all_nodes.append(effect_nodes)
+    all_nodes = list(set(all_nodes))
+    print(all_nodes)
+    pass
+
 if __name__ == '__main__':
     A0 = BayesNet('', 0, [], '病史', default_F=0.6, root_node=True)
     A1 = BayesNet(name='', cause_nodes=1, cause_nodes_name=['病史'], effect_name='增加可能性', init_data=[[0, 0.1, 0.9], [1, 0.4, 0.6]])
     A2 = BayesNet('', 2, ['检查', '检验'], '是否符合')
     A3 = BayesNet('', 2, ['增加可能性', '是否符合'], '诊断结果')
+    '''
+    先获得各个节点，初始节点，互相节点
+    待求概率 -> 计算
+    '''
+    calculate([A0, A1, A2, A3])
