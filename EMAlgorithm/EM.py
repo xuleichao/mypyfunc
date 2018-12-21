@@ -186,6 +186,8 @@ if __name__ == '__main__':
         #print(mu_lst)
         #print(sigama_lst)
         #print(weight_lst)
+        print(mu_lst)
+        
         new_mu_lst = []
         new_sigama_lst = []
         new_weight_lst = []
@@ -201,13 +203,15 @@ if __name__ == '__main__':
             new_mu_lst.append(list(new_mu.values())[0])
             new_sigama_lst.append(list(new_sigama.values())[0])
             new_weight_lst.append(list(new_weight.values())[0])
+        a = abs(np.array(mu_lst) - np.array(new_mu_lst)).sum()
+        print("----", a)
         mu_lst = new_mu_lst
         sigama_lst = new_sigama_lst
         weight_lst = new_weight_lst
         #print(mu_lst)
-        print(sigama_lst)
+        #print(sigama_lst)
         #print(weight_lst)
-        break
+        #break
     result = gamma_all_cal(datasets, mu_lst, sigama_lst, weight_lst)
     f = open('EM_rslt.txt', 'w', encoding='utf-8')
     import json
