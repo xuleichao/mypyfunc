@@ -7,7 +7,7 @@ import sys
 import os
 main_path = os.path.dirname(os.path.abspath(__file__)).replace('\\', '/')
 main_path = '/'.join(main_path.split('/')[:-1])
-from load_dd import load_dd
+from load_dd import load_dd, load_data
 import numpy as np
 from numpy import *
 
@@ -77,7 +77,7 @@ def new_mu_vector_cal(datasets, mu_lst, sigama_lst, k, weight_lst):
         break
     return new_result
 
-def new_sigama_cal(datasets, mu, sigama, k, weight_lst):
+def new_sigama_cal(datasets, mu_lst, sigama_lst, k, weight_lst):
     '''
     - k: 第几个高斯分量
     '''
@@ -88,11 +88,11 @@ def new_sigama_cal(datasets, mu, sigama, k, weight_lst):
         result[str(i) + '_sum_sigama_ij_x'] = np.zeros((len(datasets[0]), len(datasets[0])))
         break
     for i in datasets:
-        gamma_i = gamma_i_j_cal(i, mu, sigama, weight_lst, k)
+        gamma_i = gamma_i_j_cal(i, mu_lst, sigama_lst, weight_lst, k)
         for _ in range(len(weight_lst)):
             
             gamma_i_k = gamma_i[str(k)+'_x']
-            gamma_ij_x = gamma_i_k * mat(np.array(i)).T * mat(np.array(i))
+            gamma_ij_x = gamma_i_k * mat(np.array(i) - mu_lst[k]).T * mat(np.array(i) - mu_lst[k])
         
             result[str(k) + '_sum_sigama_ij'] += gamma_i_k
             result[str(k) + '_sum_sigama_ij_x'] += gamma_ij_x
@@ -144,12 +144,28 @@ def E_M(datasets, mu_lst, gamma_lst, weight_lst):
     pass
     
 
+def gamma_all_cal(datasets, mu_lst, sigama_lst, weight_lst):
+    result = []
+    for i in datasets:
+        sub = {}
+        for k in range(len(mu_lst)):
+            P_gamma = gamma_i_j_cal(i, mu_lst, sigama_lst, weight_lst, k)
+            sub.update(P_gamma)
+        sort = sorted(sub.items(), key=lambda item:item[1], reverse=True)
+        #print(sub)
+        #print(sort[0])
+        result.append([i, sort[0]])
+        #break
+    return result
+
 if __name__ == '__main__':
     # E_M 过程
     datasets = load_dd()
+    #datasets = load_data()
     # 参数初始化
     # 平均值
     mu_lst = [np.array(datasets[5]), np.array(datasets[21]), np.array(datasets[26])]
+    #mu_lst = [np.array(datasets[5]), np.array(datasets[21])]
     # 协方差
     sigama_lst = [np.array([[0.1, 0],
                            [0, 0.1]], dtype='float64'),
@@ -157,9 +173,15 @@ if __name__ == '__main__':
                            [0, .1]], dtype='float64'),
                   np.array([[.1, 0],
                            [0, .1]], dtype='float64')]
+    #sigama_lst = [np.array([[0.1, 0],
+    #                       [0, 0.1]], dtype='float64'),
+    #             np.array([[.1, 0],
+    #                       [0, .1]], dtype='float64'),
+    #             ]
     # 高斯的权重
-    weight_lst = [0.3333, 0.3333, 0.33333]
-    num = 10 # 迭代次数
+    weight_lst = [1/3, 1/3, 1/3]
+    #weight_lst = [0.5, 0.5]
+    num = 50 # 迭代次数
     for i in range(num):
         #print(mu_lst)
         #print(sigama_lst)
@@ -174,6 +196,7 @@ if __name__ == '__main__':
             weight = weight_lst[j]
             new_mu = new_mu_vector_cal(datasets, mu_lst, sigama_lst, j, weight_lst)
             new_sigama = new_sigama_cal(datasets, mu_lst, sigama_lst, j, weight_lst)
+            print(new_sigama)
             new_weight = new_weight_cal(datasets, mu_lst, sigama_lst, j, weight_lst)
             new_mu_lst.append(list(new_mu.values())[0])
             new_sigama_lst.append(list(new_sigama.values())[0])
@@ -185,7 +208,12 @@ if __name__ == '__main__':
         print(sigama_lst)
         #print(weight_lst)
         break
-        
-    
+    result = gamma_all_cal(datasets, mu_lst, sigama_lst, weight_lst)
+    f = open('EM_rslt.txt', 'w', encoding='utf-8')
+    import json
+    for i in result:
+        new_i = [i[0].tolist(), i[1]]
+        f.write(json.dumps(new_i)+'\n')
+    f.close()
     
     
